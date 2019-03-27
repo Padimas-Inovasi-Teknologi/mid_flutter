@@ -1,0 +1,11 @@
+<manifest xmlns:android="http://schemas.android.com/apk/res/android"
+  package="com.ric.midflutter">
+    <application
+        android:name="io.flutter.app.FlutterApplication"
+        android:label="mid_flutter">
+        <activity
+            android:name=".WebviewVerifyActivity"
+            android:screenOrientation="portrait"
+            android:theme="@style/Theme.NeedMobile.Base.NoActionBar" />
+    </application>
+</manifest>

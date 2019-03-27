@@ -1,18 +1,12 @@
-# Payment Plugin connected to MidTrans
-
-*Note*: This plugin is still under development, and some Components might not be available yet or still has so many bugs.
-- This Interface is supported by one of Indonesia's Payment Gateway vendor [Midtrans](midtrans github)
-
-## Installation
-
-First, add `mid_flutter` as a [dependency in your pubspec.yaml file](https://flutter.io/platform-plugins/).
-
 ```
-mid_flutter: ^0.0.1
-```
+import 'package:flutter/material.dart';
+import 'dart:async';
 
-## Example
-```
+import 'package:flutter/services.dart';
+import 'package:mid_flutter/mid_flutter.dart';
+
+void main() => runApp(MidFlutterDemo());
+
 class MidFlutterDemo extends StatefulWidget {
   @override
   _MidFlutterDemoState createState() => _MidFlutterDemoState();
