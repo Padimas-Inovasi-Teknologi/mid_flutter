@@ -29,9 +29,9 @@ import static android.app.Activity.RESULT_OK;
 public class MidFlutterPlugin implements MethodCallHandler, PluginRegistry.ActivityResultListener {
     private Context context;
     private Activity activity;
-    private static final int REQUEST_RENT_FEE = 4569;
-    private String token;
-    private Result result;
+    public static final int REQUEST_RENT_FEE = 4569;
+    private static String token;
+    private static Result result;
 
     public static void registerWith(Registrar registrar) {
         final MethodChannel channel = new MethodChannel(registrar.messenger(), "mid_flutter");
@@ -47,7 +47,6 @@ public class MidFlutterPlugin implements MethodCallHandler, PluginRegistry.Activ
 
     @Override
     public void onMethodCall(MethodCall call, Result result) {
-        Log.d("ricric", "im in");
         if (call.method.equals("configure")) {
             String clientKey = call.argument("clientKey");
             Object isProductionRaw = call.argument("isProduction");
@@ -129,10 +128,15 @@ public class MidFlutterPlugin implements MethodCallHandler, PluginRegistry.Activ
     }
 
     @Override
-    public boolean onActivityResult(int i, int i1, Intent intent) {
-        if (i == REQUEST_RENT_FEE && i1 == RESULT_OK) {
+    public boolean onActivityResult(int requestCode, int resultCode, Intent intent) {
+        return triggerResult(requestCode, resultCode, intent);
+    }
+
+    public static boolean triggerResult(int requestCode, int resultCode, Intent intent) {
+        if (requestCode == REQUEST_RENT_FEE && resultCode == RESULT_OK) {
             if (result != null) result.success("Token: " + (token == null ? "" : token));
         }
+
         return false;
     }
 }
