@@ -29,9 +29,9 @@ import static android.app.Activity.RESULT_OK;
 public class MidFlutterPlugin implements MethodCallHandler, PluginRegistry.ActivityResultListener {
     private Context context;
     private Activity activity;
-    private static final int REQUEST_RENT_FEE = 4569;
-    private String token;
-    private Result result;
+    public static final int REQUEST_RENT_FEE = 4569;
+    private static String token;
+    private static Result result;
 
     public static void registerWith(Registrar registrar) {
         final MethodChannel channel = new MethodChannel(registrar.messenger(), "mid_flutter");
@@ -139,6 +139,13 @@ public class MidFlutterPlugin implements MethodCallHandler, PluginRegistry.Activ
             }
         } else {
             result.success("Failed!");
+    public boolean onActivityResult(int requestCode, int resultCode, Intent intent) {
+        return triggerResult(requestCode, resultCode, intent);
+    }
+
+    public static boolean triggerResult(int requestCode, int resultCode, Intent intent) {
+        if (requestCode == REQUEST_RENT_FEE && resultCode == RESULT_OK) {
+            if (result != null) result.success("Token: " + (token == null ? "" : token));
         }
 
         return false;
