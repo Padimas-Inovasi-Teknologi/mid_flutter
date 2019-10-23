@@ -132,6 +132,8 @@ public class MidFlutterPlugin implements MethodCallHandler, PluginRegistry.Activ
     public boolean onActivityResult(int i, int i1, Intent intent) {
         if (i == REQUEST_RENT_FEE && i1 == RESULT_OK) {
             if (result != null) result.success("Token: " + (token == null ? "" : token));
+        } else {
+            result.error("Error", "Authorization cancelled by user", "");
         }
         return false;
     }

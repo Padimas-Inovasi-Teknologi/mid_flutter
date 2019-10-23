@@ -2,12 +2,16 @@ package com.ric.midflutter;
 
 import android.annotation.SuppressLint;
 import android.graphics.Bitmap;
+import android.os.Build;
 import android.os.Bundle;
 import android.util.Log;
+import android.webkit.ValueCallback;
 import android.webkit.WebChromeClient;
 import android.webkit.WebView;
 import android.webkit.WebViewClient;
 import android.widget.FrameLayout;
+
+import androidx.annotation.RequiresApi;
 
 import com.midtrans.sdk.uikit.activities.BaseActivity;
 
@@ -79,6 +83,11 @@ public class WebviewVerifyActivity extends WebviewBaseActivity {
         finish();
     }
 
+    private void paymentFailed() {
+        setResult(RESULT_CANCELED);
+        finish();
+    }
+
     public class MyWebClient extends WebViewClient {
         @Override
         public void onPageStarted(WebView view, String url, Bitmap favicon) {
@@ -96,9 +105,33 @@ public class WebviewVerifyActivity extends WebviewBaseActivity {
         public void onPageFinished(WebView view, String url) {
             Log.d("Load finished, url : ", url);
             if (url.contains(SUCCESS_URL)) {
-                completePayment();
+                if (url.contains(SUCCESS_URL)) {
+                    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.KITKAT) {
+                        checkingToken(view);
+                    } else {
+                        completePayment();
+                    }
+
+                }
             }
             super.onPageFinished(view, url);
+        }
+
+        @RequiresApi(api = Build.VERSION_CODES.KITKAT)
+        private void checkingToken(WebView view) {
+            view.evaluateJavascript(
+                    "(function() { return ('<html>'+document.getElementsByTagName('html')[0].innerHTML+'</html>'); })();",
+                    new ValueCallback<String>() {
+                        @Override
+                        public void onReceiveValue(String html) {
+                            Log.d("HTML", html);
+                            if (html.contains("Success")) {
+                                completePayment();
+                            } else {
+                                paymentFailed();
+                            }
+                        }
+                    });
         }
     }
 
