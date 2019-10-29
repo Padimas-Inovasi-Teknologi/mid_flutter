@@ -1,6 +1,6 @@
 import Flutter
 import UIKit
-import MidtransCoreKit
+
 
 private class MidtransConfiguration {
     var production: Bool = false
@@ -79,7 +79,7 @@ public class SwiftMidFlutterPlugin: NSObject, FlutterPlugin {
                     MidtransClient.shared().generateToken(tokenRequest) { token, error in
                         DispatchQueue.main.async {
                             if let error = error{
-                                result("Error: \(error.localizedDescription)");
+                                result("\(error.localizedDescription)");
                             }
                             result("Token: \(token ?? "")");
                         }

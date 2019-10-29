@@ -1,6 +1,8 @@
 package com.ric.midflutter;
 
 import android.annotation.SuppressLint;
+import android.app.Activity;
+import android.content.Intent;
 import android.graphics.Bitmap;
 import android.os.Build;
 import android.os.Bundle;
@@ -83,8 +85,11 @@ public class WebviewVerifyActivity extends WebviewBaseActivity {
         finish();
     }
 
-    private void paymentFailed() {
-        setResult(RESULT_CANCELED);
+    private void paymentFailed(String message) {
+        Intent resultIntent = new Intent();
+        // TODO Add extras or a data URI to this intent as appropriate.
+        resultIntent.putExtra("message", message);
+        setResult(Activity.RESULT_CANCELED, resultIntent);
         finish();
     }
 
@@ -103,7 +108,6 @@ public class WebviewVerifyActivity extends WebviewBaseActivity {
 
         @Override
         public void onPageFinished(WebView view, String url) {
-            Log.d("Load finished, url : ", url);
             if (url.contains(SUCCESS_URL)) {
                 if (url.contains(SUCCESS_URL)) {
                     if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.KITKAT) {
@@ -127,8 +131,12 @@ public class WebviewVerifyActivity extends WebviewBaseActivity {
                             Log.d("HTML", html);
                             if (html.contains("Success")) {
                                 completePayment();
+                            } else if (html.contains("Card is not authenticated")) {
+                                paymentFailed("Card is not authenticated.");
+                            } else if (html.contains("Failed to generate 3D Secure token")) {
+                                paymentFailed("Failed to generate 3D Secure token.");
                             } else {
-                                paymentFailed();
+                                paymentFailed("Unknown error");
                             }
                         }
                     });

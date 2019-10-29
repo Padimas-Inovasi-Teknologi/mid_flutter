@@ -32,18 +32,24 @@ class MidFlutter {
     assert(expiryMonth != null && expiryMonth >= 1 && expiryMonth <= 12);
     assert(expiryYear != null);
     assert(cvv != null);
-    assert(amount != null && amount > 0.0);
+    assert(amount != null && amount > 0.0 && amount <= 999999999);
 
-    final String result = await _channel.invokeMethod('generateCreditCardToken', {
-      "creditCardNumber": creditCardNumber,
-      "expiryMonth": expiryMonth,
-      "expiryYear": expiryYear,
-      "cvv": cvv,
-      "amount": amount
-    });
+    String result;
+
+    try {
+      result = await _channel.invokeMethod('generateCreditCardToken', {
+        "creditCardNumber": creditCardNumber,
+        "expiryMonth": expiryMonth,
+        "expiryYear": expiryYear,
+        "cvv": cvv,
+        "amount": amount
+      });
+    } catch (e) {
+      throw Exception(e.message); //handle android
+    }
 
     if (result.indexOf("Token: ") == -1) {
-      throw Exception(result);
+      throw Exception(result); // handle ios
     }
 
     return result;

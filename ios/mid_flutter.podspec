@@ -15,7 +15,6 @@ When Midtrans and Flutter get together
   s.source_files = 'Classes/**/*'
   s.public_header_files = 'Classes/**/*.h'
   s.dependency 'Flutter'
-  s.dependency 'MidtransCoreKit', '~> 1.14.1'
   s.static_framework = true
 
   s.ios.deployment_target = '8.0'
