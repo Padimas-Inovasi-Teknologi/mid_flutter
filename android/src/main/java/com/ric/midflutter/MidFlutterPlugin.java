@@ -47,7 +47,6 @@ public class MidFlutterPlugin implements MethodCallHandler, PluginRegistry.Activ
 
     @Override
     public void onMethodCall(MethodCall call, Result result) {
-        Log.d("ricric", "im in");
         if (call.method.equals("configure")) {
             String clientKey = call.argument("clientKey");
             Object isProductionRaw = call.argument("isProduction");
@@ -129,12 +128,19 @@ public class MidFlutterPlugin implements MethodCallHandler, PluginRegistry.Activ
     }
 
     @Override
-    public boolean onActivityResult(int i, int i1, Intent intent) {
-        if (i == REQUEST_RENT_FEE && i1 == RESULT_OK) {
-            if (result != null) result.success("Token: " + (token == null ? "" : token));
+    public boolean onActivityResult(int requestCode, int resultCode, Intent data) {
+        if (requestCode == REQUEST_RENT_FEE) {
+            if (resultCode == RESULT_OK) {
+                if (result != null) result.success("Token: " + (token == null ? "" : token));
+            } else {
+                String cancelMessage = "3D Secure transaction canceled by user";
+                String message = data == null ? cancelMessage : data.getStringExtra("message");
+                result.error("Error", message, "");
+            }
         } else {
-            result.error("Error", "3D Secure transaction canceled by user", "");
+            result.success("Failed!");
         }
+
         return false;
     }
 }

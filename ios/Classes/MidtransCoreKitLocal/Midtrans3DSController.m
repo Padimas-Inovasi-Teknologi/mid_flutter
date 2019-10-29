@@ -121,16 +121,38 @@
         [self dismissViewControllerAnimated:YES completion:^{
             NSString *web = [self.webView stringByEvaluatingJavaScriptFromString: @"document.body.innerText"];
             NSString *success = @"Success";
-            NSRange range = [web  rangeOfString: success options: NSCaseInsensitiveSearch];
-            NSError *error = [NSError errorWithDomain:@"some_domain"
-                                                 code:100
-                                             userInfo:@{
-                                                        NSLocalizedDescriptionKey:@"3D Secure transaction canceled by user"
-                                                        }];
+            NSString *cancel = @"Failed to generate 3D Secure token";
+            NSString *failed = @"Card is not authenticated";
+            NSString *defaultError = @"Unknown error";
+            NSRange rangeSuccess = [web  rangeOfString: success options: NSCaseInsensitiveSearch];
+            NSRange rangeCancel = [web  rangeOfString: cancel options: NSCaseInsensitiveSearch];
+            NSRange rangeFailed = [web  rangeOfString: failed options: NSCaseInsensitiveSearch];
             
-            if (range.location != NSNotFound) {
+            if (rangeCancel.location != NSNotFound) {
+                NSError *error = [NSError errorWithDomain:@"some_domain"
+                                                     code:100
+                                                 userInfo:@{
+                                                            NSLocalizedDescriptionKey:cancel
+                                                            }];
+                
+                if (self.completion) self.completion(error);
+            } else if (rangeFailed.location != NSNotFound) {
+                NSError *error = [NSError errorWithDomain:@"some_domain"
+                                                     code:100
+                                                 userInfo:@{
+                                                            NSLocalizedDescriptionKey:failed
+                                                            }];
+                
+                if (self.completion) self.completion(error);
+            } else if (rangeSuccess.location != NSNotFound) {
                 if (self.completion) self.completion(nil);
             } else {
+                NSError *error = [NSError errorWithDomain:@"some_domain"
+                                                     code:100
+                                                 userInfo:@{
+                                                            NSLocalizedDescriptionKey:defaultError
+                                                            }];
+                
                 if (self.completion) self.completion(error);
             }
         }];
