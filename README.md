@@ -2,6 +2,7 @@
 
 *Note*: This plugin is still under development, and some Components might not be available yet or still has so many bugs.
 - This Interface is supported by one of Indonesia's Payment Gateway vendor [Midtrans](midtrans github)
+- We override MidtransKit SDK from Midtrans locally in order to handle cancel button clicked
 
 ## Installation
 
