@@ -98,7 +98,7 @@ class _MidFlutterDemoState extends State<MidFlutterDemo> {
                   }
 
                   if (_error == "") {
-                    bool configured = await MidFlutter.configure(clientKey: "your_midtrans_client_key");
+                    bool configured = await MidFlutter.configure(clientKey: "VT-client-j_y7RRFZJETHsqMe");
 
                     if (configured) {
                       try {
