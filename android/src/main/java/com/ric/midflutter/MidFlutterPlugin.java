@@ -129,23 +129,20 @@ public class MidFlutterPlugin implements MethodCallHandler, PluginRegistry.Activ
 
     @Override
     public boolean onActivityResult(int requestCode, int resultCode, Intent data) {
+        return triggerResult(requestCode, resultCode, data);
+    }
+
+    public static boolean triggerResult(int requestCode, int resultCode, Intent intent) {
         if (requestCode == REQUEST_RENT_FEE) {
             if (resultCode == RESULT_OK) {
                 if (result != null) result.success("Token: " + (token == null ? "" : token));
             } else {
                 String cancelMessage = "3D Secure transaction canceled by user";
-                String message = data == null ? cancelMessage : data.getStringExtra("message");
+                String message = intent == null ? cancelMessage : intent.getStringExtra("message");
                 result.error("Error", message, "");
             }
         } else {
             result.success("Failed!");
-    public boolean onActivityResult(int requestCode, int resultCode, Intent intent) {
-        return triggerResult(requestCode, resultCode, intent);
-    }
-
-    public static boolean triggerResult(int requestCode, int resultCode, Intent intent) {
-        if (requestCode == REQUEST_RENT_FEE && resultCode == RESULT_OK) {
-            if (result != null) result.success("Token: " + (token == null ? "" : token));
         }
 
         return false;
