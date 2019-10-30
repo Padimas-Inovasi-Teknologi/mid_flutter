@@ -141,6 +141,7 @@ public class MidFlutterPlugin implements MethodCallHandler, PluginRegistry.Activ
         } else {
             result.success("Failed!");
 =======
+>>>>>>> 82a672ad95b2f505d7a52555a1234ffb107fe2d9
     public boolean onActivityResult(int requestCode, int resultCode, Intent intent) {
         return triggerResult(requestCode, resultCode, intent);
     }
@@ -148,7 +149,6 @@ public class MidFlutterPlugin implements MethodCallHandler, PluginRegistry.Activ
     public static boolean triggerResult(int requestCode, int resultCode, Intent intent) {
         if (requestCode == REQUEST_RENT_FEE && resultCode == RESULT_OK) {
             if (result != null) result.success("Token: " + (token == null ? "" : token));
->>>>>>> support nemob
         }
 
         return false;
