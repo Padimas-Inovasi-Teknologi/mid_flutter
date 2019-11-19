@@ -73,20 +73,17 @@ public class MidFlutterPlugin implements MethodCallHandler, PluginRegistry.Activ
 
     private void configure(String clientKey, boolean isProduction) {
         String merchantBaseUrl;
-        boolean enableLog;
         if (!isProduction) {
             merchantBaseUrl = "https://api.sandbox.veritrans.co.id/v2/transactions";
-            enableLog = true;
         } else {
             merchantBaseUrl = "https://api.veritrans.co.id/v2/transactions";
-            enableLog = false;
         }
 
         SdkCoreFlowBuilder.init()
                 .setContext(this.context)
                 .setClientKey(clientKey)
                 .setMerchantBaseUrl(merchantBaseUrl)
-                .enableLog(enableLog)
+                .enableLog(BuildConfig.DEBUG)
                 .buildSDK();
 
         this.result.success("");
