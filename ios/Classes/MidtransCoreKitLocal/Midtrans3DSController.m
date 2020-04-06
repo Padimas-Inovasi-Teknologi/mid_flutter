@@ -11,7 +11,7 @@
 #import "MidtransConstant.h"
 #import "MidtransMerchantClient.h"
 #import "MidtransTransaction.h"
-@interface Midtrans3DSController() <UIWebViewDelegate, UIAlertViewDelegate>
+@interface Midtrans3DSController() <WKNavigationDelegate>
 @property (nonatomic) NSURL *secureURL;
 @property (nonatomic) NSString *token;
 @property (nonatomic) UIViewController *rootViewController;
@@ -43,10 +43,23 @@
     self.navigationItem.leftBarButtonItem = closeButton;
     self.title =self.titleOveride.length?self.titleOveride:NSLocalizedString(@"3D Secure", nil);
     self.title = @"Credit Card";
-    self.webView = [UIWebView new];
+    
+    //equal to uiwebview pageToFit, also disable zooming automatically//
+    NSString *source = [NSString stringWithFormat:@"var meta = document.createElement('meta');meta.name = 'viewport';meta.content = 'width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no';var head = document.getElementsByTagName('head')[0];head.appendChild(meta);"];
+    
+    WKUserScript *script = [[WKUserScript alloc]initWithSource:source injectionTime:WKUserScriptInjectionTimeAtDocumentEnd forMainFrameOnly:true];
+   
+    WKUserContentController *userContentController = [WKUserContentController new];
+    WKWebViewConfiguration *config = [WKWebViewConfiguration new];
+    
+    config.userContentController = userContentController;
+    [userContentController addUserScript:script];
+    
+    self.webView = [[WKWebView alloc] initWithFrame:CGRectZero configuration:config];
     self.webView.translatesAutoresizingMaskIntoConstraints = NO;
-    self.webView.delegate = self;
+    self.webView.navigationDelegate = self;
     [self.view addSubview:self.webView];
+    
     [self.view addConstraints:[NSLayoutConstraint constraintsWithVisualFormat:@"H:|[view]|" options:0 metrics:0 views:@{@"view":self.webView}]];
     [self.view addConstraints:[NSLayoutConstraint constraintsWithVisualFormat:@"V:|[view]|" options:0 metrics:0 views:@{@"view":self.webView}]];
     [self.webView loadRequest:[NSURLRequest requestWithURL:self.secureURL]];
@@ -65,18 +78,26 @@
 
 - (void)showWithCompletion:(void(^)(NSError *error))completion {
     UINavigationController *nvc = [[UINavigationController alloc] initWithRootViewController:self];
+    nvc.modalPresentationStyle = UIModalPresentationFullScreen;
     [self.rootViewController presentViewController:nvc animated:YES completion:nil];
     self.completion = completion;
 }
 
-#pragma mark - UIWebViewDelegate
+- (void)scaleTo3DSSize {
+    //    400x800 is the standard 3ds page size
+    CGFloat factor = CGRectGetWidth(self.webView.frame) / 400.;
+    NSString *jsCommand = [NSString stringWithFormat:@"document.body.style.zoom = %f;", factor];
+    [self.webView evaluateJavaScript:jsCommand completionHandler:nil];
+}
 
-- (void)webViewDidStartLoad:(UIWebView *)webView {
+//#pragma mark - UIWebViewDelegate
+
+- (void)webView:(WKWebView *)webView didStartProvisionalNavigation:(WKNavigation *)navigation{
     [[UIApplication sharedApplication] setNetworkActivityIndicatorVisible:YES];
     [self scaleTo3DSSize];
 }
 
-- (void)webView:(UIWebView *)webView didFailLoadWithError:(NSError *)error {
+- (void)webView:(WKWebView *)webView didFailNavigation:(WKNavigation *)navigation withError:(NSError *)error{
     [[UIApplication sharedApplication] setNetworkActivityIndicatorVisible:NO];
     
     [self dismissViewControllerAnimated:YES completion:^{
@@ -84,20 +105,14 @@
     }];
 }
 
-- (void)scaleTo3DSSize {
-    //400x800 is the standard 3ds page size
-    CGFloat factor = CGRectGetWidth(self.webView.frame) / 400.;
-    NSString *jsCommand = [NSString stringWithFormat:@"document.body.style.zoom = %f;", factor];
-    [self.webView stringByEvaluatingJavaScriptFromString:jsCommand];
-}
-- (void)webViewDidFinishLoad:(UIWebView *)webView {
+- (void)webView:(WKWebView *)webView didFinishNavigation:(WKNavigation *)navigation{
     [[UIApplication sharedApplication] setNetworkActivityIndicatorVisible:NO];
     
     [self scaleTo3DSSize];
     //filter request
-    NSURLRequest *request = webView.request;
+    NSURL *request = webView.URL;
     ////this is for rba
-    if (request.URL.pathComponents.count >3 && [request.URL.pathComponents[4] isEqualToString:@"callback"] ) {
+    if (request.pathComponents.count >3 && [request.pathComponents[4] isEqualToString:@"callback"] ) {
         
         [[MidtransMerchantClient shared] performCheckStatusRBA:self.transcationData completion:^(MidtransTransactionResult * _Nullable result, NSError * _Nullable error) {
             if (error) {
@@ -116,18 +131,19 @@
             }
         }];
     }
-    if (request.URL.pathComponents.count > 3 && [request.URL.pathComponents[3] isEqualToString:@"callback"]) {
+    if (request.pathComponents.count > 3 && [request.pathComponents[3] isEqualToString:@"callback"]) {
+        
         
         [self dismissViewControllerAnimated:YES completion:^{
-            NSString *web = [self.webView stringByEvaluatingJavaScriptFromString: @"document.body.innerText"];
+            NSString *resultString = [self checkCallBack:@"document.body.innerText"];
             NSString *success = @"Success";
             NSString *cancel = @"Failed to generate 3D Secure token";
             NSString *failed = @"Card is not authenticated";
             NSString *defaultError = @"Unknown error";
-            NSRange rangeSuccess = [web  rangeOfString: success options: NSCaseInsensitiveSearch];
-            NSRange rangeCancel = [web  rangeOfString: cancel options: NSCaseInsensitiveSearch];
-            NSRange rangeFailed = [web  rangeOfString: failed options: NSCaseInsensitiveSearch];
-            
+
+            NSRange rangeSuccess = [resultString  rangeOfString: success options:NSCaseInsensitiveSearch];
+            NSRange rangeCancel = [resultString  rangeOfString: cancel options: NSCaseInsensitiveSearch];
+            NSRange rangeFailed = [resultString  rangeOfString: failed options: NSCaseInsensitiveSearch];
             if (rangeCancel.location != NSNotFound) {
                 NSError *error = [NSError errorWithDomain:@"some_domain"
                                                      code:100
@@ -155,8 +171,33 @@
                 
                 if (self.completion) self.completion(error);
             }
+
         }];
     }
+}
+
+-(NSString *)checkCallBack:(NSString *)script{
+    __block NSString *resultString = nil;
+    __block BOOL finished = NO;
+
+    [self.webView evaluateJavaScript:script completionHandler:^(id result, NSError *error) {
+        if (error == nil) {
+            if (result != nil) {
+                resultString = [NSString stringWithFormat:@"%@", result];
+            }
+        } else {
+            resultString = @"Unknown error";
+            NSLog(@"evaluateJavaScript error : %@", error.localizedDescription);
+        }
+        finished = YES;
+    }];
+
+    while (!finished)
+    {
+        [[NSRunLoop currentRunLoop] runMode:NSDefaultRunLoopMode beforeDate:[NSDate distantFuture]];
+    }
+
+    return resultString;
 }
 
 @end
