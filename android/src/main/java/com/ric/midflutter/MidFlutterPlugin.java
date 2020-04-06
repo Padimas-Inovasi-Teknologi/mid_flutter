@@ -8,8 +8,10 @@ import android.util.Log;
 import com.midtrans.sdk.corekit.callback.CardTokenCallback;
 import com.midtrans.sdk.corekit.core.MidtransSDK;
 import com.midtrans.sdk.corekit.core.SdkCoreFlowBuilder;
+import com.midtrans.sdk.corekit.core.TransactionRequest;
 import com.midtrans.sdk.corekit.models.CardTokenRequest;
 import com.midtrans.sdk.corekit.models.TokenDetailsResponse;
+import com.midtrans.sdk.corekit.models.snap.Gopay;
 
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -74,9 +76,9 @@ public class MidFlutterPlugin implements MethodCallHandler, PluginRegistry.Activ
     private void configure(String clientKey, boolean isProduction) {
         String merchantBaseUrl;
         if (!isProduction) {
-            merchantBaseUrl = "https://api.sandbox.veritrans.co.id/v2/transactions";
+            merchantBaseUrl = "https://api.sandbox.veritrans.co.id/v2/transactions/";
         } else {
-            merchantBaseUrl = "https://api.veritrans.co.id/v2/transactions";
+            merchantBaseUrl = "https://api.veritrans.co.id/v2/transactions/";
         }
 
         SdkCoreFlowBuilder.init()
