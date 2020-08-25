@@ -110,11 +110,11 @@ public class MidFlutterPlugin implements MethodCallHandler, PluginRegistry.Activ
             public void onSuccess(TokenDetailsResponse tokenDetailsResponse) {
                 String token = tokenDetailsResponse.getTokenId();
                 String url = tokenDetailsResponse.getRedirectUrl();
-
-                MidFlutterPlugin.this.token = token;
-                Intent intent = new Intent(activity, WebviewVerifyActivity.class);
-                intent.putExtra(WebviewVerifyActivity.EXTRA_URL, url);
-                activity.startActivityForResult(intent, REQUEST_RENT_FEE);
+                result.success("Token: " + (token == null ? "" : token)+"\n Redirect Url: "+(url == null ? "" : null));
+//                MidFlutterPlugin.this.token = token;
+//                Intent intent = new Intent(activity, WebviewVerifyActivity.class);
+//                intent.putExtra(WebviewVerifyActivity.EXTRA_URL, url);
+//                activity.startActivityForResult(intent, REQUEST_RENT_FEE);
             }
 
             @Override
